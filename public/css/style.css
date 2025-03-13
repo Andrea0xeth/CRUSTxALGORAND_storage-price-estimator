@@ -128,6 +128,33 @@ ul {
     padding-left: 1.2rem;
 }
 
+/* Stile per le icone dei tooltip */
+.bi-info-circle {
+    color: #0367a6;
+    font-size: 0.85rem;
+    cursor: pointer;
+    opacity: 0.75;
+    transition: opacity 0.3s ease;
+}
+
+.bi-info-circle:hover {
+    opacity: 1;
+}
+
+/* Miglioramento stile tooltip di Bootstrap */
+.tooltip {
+    font-size: 0.85rem;
+}
+
+.tooltip .tooltip-inner {
+    max-width: 250px;
+    background-color: #2d3748;
+    padding: 8px 12px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+    text-align: left;
+    line-height: 1.4;
+}
+
 /* Media query per responsiveness */
 @media (max-width: 991px) {
     .sidebar-results {
