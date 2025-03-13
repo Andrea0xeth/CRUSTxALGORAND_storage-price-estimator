@@ -113,7 +113,10 @@ app.post('/calculate-price', async (req, res) => {
 
     const file = req.files.file;
     const fileSize = file.size;
-    const isPermanent = req.body.isPermanent === 'true';
+    
+    // Corretto per gestire il checkbox in modo corretto
+    // I checkbox HTML inviano "on" o non inviano nulla quando selezionati
+    const isPermanent = req.body.isPermanent === 'on' || req.body.isPermanent === 'true';
     
     // Get custom price parameters if provided
     const basePrice = parseInt(req.body.basePrice) || DEFAULT_BASE_PRICE;
