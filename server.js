@@ -48,13 +48,14 @@ let tokenPriceCache = {
 
 /**
  * Ottiene i prezzi attuali dei token da CoinGecko
+ * @param {boolean} forceRefresh Se true, ignora la cache e recupera sempre i prezzi freschi
  * @returns {Promise<{algoPrice: number, crustPrice: number}>}
  */
-async function getTokenPrices() {
+async function getTokenPrices(forceRefresh = false) {
   try {
-    // Se abbiamo prezzi in cache recenti (meno di 10 secondi), usiamo quelli
+    // Se abbiamo prezzi in cache recenti (meno di 10 secondi) e non è richiesto un refresh forzato, usiamo quelli
     const now = Date.now();
-    if (tokenPriceCache.timestamp && (now - tokenPriceCache.timestamp < 10 * 1000)) {
+    if (!forceRefresh && tokenPriceCache.timestamp && (now - tokenPriceCache.timestamp < 10 * 1000)) {
       console.log('Using cached token prices');
       return {
         algoPrice: tokenPriceCache.algo,
@@ -328,4 +329,25 @@ app.get('/api/token-prices', async (req, res) => {
 // Start the server
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
+  
+  // Imposta un timer per aggiornare i prezzi dei token ogni 10 secondi
+  console.log('Starting automatic token price updates every 10 seconds...');
+  
+  // Aggiorna subito i prezzi una prima volta
+  getTokenPrices(true).then(({ algoPrice, crustPrice }) => {
+    console.log(`Initial token prices: ALGO = $${algoPrice}, CRUST = $${crustPrice}`);
+  }).catch(error => {
+    console.error('Error fetching initial token prices:', error);
+  });
+  
+  // Imposta l'aggiornamento periodico
+  setInterval(() => {
+    console.log('\n--- Scheduled token price update ---');
+    getTokenPrices(true).then(({ algoPrice, crustPrice }) => {
+      console.log(`Updated token prices: ALGO = $${algoPrice}, CRUST = $${crustPrice}`);
+      console.log('--- End of scheduled update ---');
+    }).catch(error => {
+      console.error('Error in scheduled token price update:', error);
+    });
+  }, 10000); // 10 secondi
 }); 
