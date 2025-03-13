@@ -94,6 +94,15 @@ document.addEventListener('DOMContentLoaded', function() {
         // Get form data
         const formData = new FormData(uploadForm);
         
+        // Assicuriamoci che il valore del checkbox venga trasmesso correttamente
+        // FormData non include checkbox deselezionati, quindi dobbiamo essere espliciti
+        const isPermanent = isPermanentCheckbox.checked;
+        formData.set('isPermanent', isPermanent ? 'true' : 'false');
+        
+        // Debug
+        console.log('Checkbox checked:', isPermanent);
+        console.log('FormData isPermanent:', formData.get('isPermanent'));
+        
         try {
             const response = await fetch('/calculate-price', {
                 method: 'POST',

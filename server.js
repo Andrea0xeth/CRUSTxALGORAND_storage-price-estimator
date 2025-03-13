@@ -61,10 +61,20 @@ class MockStorageOrderClient {
                 const byteCost = sizeInKB * this.bytePrice;
                 let totalPrice = basePrice + byteCost;
                 
+                // Debug per verificare il valore di is_permanent
+                console.log('In MockStorageOrderClient, is_permanent:', is_permanent);
+                console.log('typeof is_permanent:', typeof is_permanent);
+                console.log('Base total price before multiplier:', totalPrice);
+                
                 // Apply multiplier for permanent storage
                 if (is_permanent) {
                   totalPrice *= this.permanentMultiplier;
+                  console.log('Applied permanent multiplier:', this.permanentMultiplier);
+                } else {
+                  console.log('No multiplier applied, using temporary storage');
                 }
+                
+                console.log('Final total price:', totalPrice);
                 
                 return {
                   methodResults: [
@@ -87,8 +97,15 @@ class MockStorageOrderClient {
 // Import the getPrice function from the example codebase
 async function getPrice(algod, appClient, size, isPermanent = false) {
   try {
+    console.log('getPrice called with isPermanent:', isPermanent);
+    console.log('typeof isPermanent:', typeof isPermanent);
+    
     const result = await (await appClient.compose().getPrice({ size, is_permanent: isPermanent }).atc()).simulate(algod);
-    return result.methodResults[0].returnValue?.valueOf();
+    
+    const price = result.methodResults[0].returnValue?.valueOf();
+    console.log('Calculated price:', price);
+    
+    return price;
   } catch (error) {
     console.error('Error getting price:', error);
     throw error;
@@ -114,9 +131,17 @@ app.post('/calculate-price', async (req, res) => {
     const file = req.files.file;
     const fileSize = file.size;
     
-    // Corretto per gestire il checkbox in modo corretto
-    // I checkbox HTML inviano "on" o non inviano nulla quando selezionati
-    const isPermanent = req.body.isPermanent === 'on' || req.body.isPermanent === 'true';
+    // Debug per vedere esattamente cosa arriva dal client
+    console.log('req.body.isPermanent:', req.body.isPermanent);
+    console.log('typeof req.body.isPermanent:', typeof req.body.isPermanent);
+    
+    // Gestione migliorata per determinare se il checkbox è selezionato
+    // Accetta qualsiasi valore truthy o la stringa 'true'
+    const isPermanent = req.body.isPermanent === 'true' || 
+                         req.body.isPermanent === 'on' || 
+                         req.body.isPermanent === true;
+    
+    console.log('isPermanent after check:', isPermanent);
     
     // Get custom price parameters if provided
     const basePrice = parseInt(req.body.basePrice) || DEFAULT_BASE_PRICE;
