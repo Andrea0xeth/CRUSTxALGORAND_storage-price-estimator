@@ -3,12 +3,83 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultsDiv = document.getElementById('results');
     const errorDiv = document.getElementById('error');
     const loadingDiv = document.getElementById('loading');
+    
+    // Result display elements
     const fileSizeSpan = document.getElementById('fileSize');
     const storageTypeSpan = document.getElementById('storageType');
     const priceInMicroAlgosSpan = document.getElementById('priceInMicroAlgos');
     const priceInAlgosSpan = document.getElementById('priceInAlgos');
     const errorMessageP = document.getElementById('errorMessage');
     
+    // Calculation details elements
+    const sizeInKBSpan = document.getElementById('sizeInKB');
+    const basePriceResultSpan = document.getElementById('basePriceResult');
+    const bytePriceSpan = document.getElementById('bytePrice');
+    const byteCostSpan = document.getElementById('byteCost');
+    const baseTotalSpan = document.getElementById('baseTotal');
+    const permanentMultiplierSpan = document.getElementById('permanentMultiplier');
+    
+    // Price parameter sliders
+    const basePriceInput = document.getElementById('basePrice');
+    const basePriceValueSpan = document.getElementById('basePriceValue');
+    const bytePriceInput = document.getElementById('bytePrice');
+    const bytePriceValueSpan = document.getElementById('bytePriceValue');
+    
+    // Real-time updating of slider values
+    basePriceInput.addEventListener('input', function() {
+        basePriceValueSpan.textContent = this.value;
+    });
+    
+    bytePriceInput.addEventListener('input', function() {
+        bytePriceValueSpan.textContent = this.value;
+    });
+    
+    // Calculate price client-side for preview (simulated)
+    const fileInput = document.getElementById('file');
+    const isPermanentCheckbox = document.getElementById('isPermanent');
+    
+    // Function to update price preview when parameters change
+    function updatePricePreview() {
+        if (!fileInput.files || !fileInput.files[0]) return;
+        
+        const fileSize = fileInput.files[0].size;
+        const isPermanent = isPermanentCheckbox.checked;
+        const basePrice = parseInt(basePriceInput.value);
+        const bytePrice = parseInt(bytePriceInput.value);
+        
+        // Preview calculation
+        const sizeInKB = Math.ceil(fileSize / 1024);
+        const byteCost = sizeInKB * bytePrice;
+        const baseTotal = basePrice + byteCost;
+        const permanentMultiplier = isPermanent ? 5 : 1;
+        const totalPrice = baseTotal * permanentMultiplier;
+        
+        // If results are already displayed, update them
+        if (resultsDiv.style.display === 'block') {
+            // Update all the price details
+            sizeInKBSpan.textContent = sizeInKB.toLocaleString();
+            basePriceResultSpan.textContent = basePrice.toLocaleString();
+            bytePriceSpan.textContent = bytePrice;
+            byteCostSpan.textContent = byteCost.toLocaleString();
+            baseTotalSpan.textContent = baseTotal.toLocaleString();
+            permanentMultiplierSpan.textContent = permanentMultiplier;
+            
+            // Update the total prices
+            priceInMicroAlgosSpan.textContent = totalPrice.toLocaleString();
+            priceInAlgosSpan.textContent = (totalPrice / 1000000).toLocaleString(undefined, {
+                minimumFractionDigits: 6,
+                maximumFractionDigits: 6
+            });
+        }
+    }
+    
+    // Add event listeners to all parameters for real-time preview
+    fileInput.addEventListener('change', updatePricePreview);
+    isPermanentCheckbox.addEventListener('change', updatePricePreview);
+    basePriceInput.addEventListener('input', updatePricePreview);
+    bytePriceInput.addEventListener('input', updatePricePreview);
+    
+    // Form submission for accurate server-side calculation
     uploadForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         
@@ -19,10 +90,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Get form data
         const formData = new FormData(uploadForm);
-        
-        // Check if isPermanent is checked
-        const isPermanentCheckbox = document.getElementById('isPermanent');
-        formData.set('isPermanent', isPermanentCheckbox.checked.toString());
         
         try {
             const response = await fetch('/calculate-price', {
@@ -50,6 +117,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     minimumFractionDigits: 6,
                     maximumFractionDigits: 6
                 });
+                
+                // Display calculation details
+                sizeInKBSpan.textContent = data.sizeInKB.toLocaleString();
+                basePriceResultSpan.textContent = data.basePrice.toLocaleString();
+                bytePriceSpan.textContent = data.bytePrice;
+                byteCostSpan.textContent = data.byteCost.toLocaleString();
+                baseTotalSpan.textContent = data.baseTotal.toLocaleString();
+                permanentMultiplierSpan.textContent = data.permanentMultiplier;
                 
                 // Show results
                 resultsDiv.style.display = 'block';

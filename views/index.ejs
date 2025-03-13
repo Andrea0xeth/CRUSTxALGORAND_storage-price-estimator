@@ -28,6 +28,37 @@
                                 <label class="form-check-label" for="isPermanent">Permanent Storage (Added to Renewal Pool)</label>
                             </div>
                             
+                            <div class="mb-4">
+                                <h5>Parametri di Prezzo Personalizzati</h5>
+                                <p class="text-muted small mb-3">Modifica questi parametri per vedere come influenzano il costo di archiviazione in tempo reale.</p>
+                                
+                                <div class="mb-3">
+                                    <label for="basePrice" class="form-label d-flex justify-content-between">
+                                        <span>Prezzo Base (microAlgos):</span>
+                                        <span id="basePriceValue"><%= defaultBasePrice %></span>
+                                    </label>
+                                    <input type="range" class="form-range" id="basePrice" name="basePrice" 
+                                        min="100000" max="500000" step="10000" value="<%= defaultBasePrice %>">
+                                    <div class="d-flex justify-content-between small text-muted">
+                                        <span>100,000 (0.1 Algos)</span>
+                                        <span>500,000 (0.5 Algos)</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="bytePrice" class="form-label d-flex justify-content-between">
+                                        <span>Prezzo per KB (microAlgos):</span>
+                                        <span id="bytePriceValue"><%= defaultBytePrice %></span>
+                                    </label>
+                                    <input type="range" class="form-range" id="bytePrice" name="bytePrice" 
+                                        min="50" max="200" step="5" value="<%= defaultBytePrice %>">
+                                    <div class="d-flex justify-content-between small text-muted">
+                                        <span>50</span>
+                                        <span>200</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <div class="text-center">
                                 <button type="submit" class="btn btn-primary">Calculate Price</button>
                             </div>
@@ -53,6 +84,20 @@
                                         <p><strong>Price (Algos):</strong> <span id="priceInAlgos"></span></p>
                                     </div>
                                 </div>
+                                <hr>
+                                <h5>Dettaglio Calcolo</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Dimensione in KB:</strong> <span id="sizeInKB"></span></p>
+                                        <p><strong>Prezzo Base:</strong> <span id="basePriceResult"></span> microAlgos</p>
+                                        <p><strong>Costo per KB:</strong> <span id="bytePrice"></span> microAlgos</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>Costo Totale Byte:</strong> <span id="byteCost"></span> microAlgos</p>
+                                        <p><strong>Prezzo Base + Byte:</strong> <span id="baseTotal"></span> microAlgos</p>
+                                        <p><strong>Moltiplicatore Permanente:</strong> <span id="permanentMultiplier"></span>x</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         
@@ -67,6 +112,25 @@
                                 <span class="visually-hidden">Loading...</span>
                             </div>
                             <p class="mt-2">Calculating storage price...</p>
+                        </div>
+                        
+                        <div class="mt-4 alert alert-secondary">
+                            <h5>Nota sui Costi di Archiviazione</h5>
+                            <p>I costi di archiviazione mostrati sono stime e possono variare in base a diversi fattori:</p>
+                            <ul>
+                                <li><strong>Dimensione del file:</strong> Il costo aumenta linearmente con la dimensione in KB.</li>
+                                <li><strong>Tipo di archiviazione:</strong> L'archiviazione permanente ha un moltiplicatore di 5x rispetto a quella temporanea.</li>
+                                <li><strong>Prezzo base:</strong> Un costo fisso applicato a ogni transazione indipendentemente dalla dimensione del file.</li>
+                                <li><strong>Prezzo per KB:</strong> Il costo variabile per kilobyte di dati.</li>
+                            </ul>
+                            <p class="mb-1">In un ambiente di produzione, i costi potrebbero essere influenzati anche da:</p>
+                            <ul>
+                                <li>Condizioni di mercato della rete Algorand</li>
+                                <li>Modifiche ai parametri del contratto smart</li>
+                                <li>Disponibilità dei nodi di archiviazione</li>
+                                <li>Durata dell'archiviazione</li>
+                            </ul>
+                            <p class="mt-2 small text-muted"><strong>Formula di calcolo:</strong> basePrice + (sizeInKB * bytePrice) * [permanentMultiplier se permanente]</p>
                         </div>
                     </div>
                 </div>

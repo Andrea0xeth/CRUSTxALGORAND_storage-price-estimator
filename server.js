@@ -33,14 +33,19 @@ const algodClient = new algosdk.Algodv2(
   ''
 );
 
+// Default pricing parameters
+const DEFAULT_BASE_PRICE = 250000; // 0.25 Algos base price
+const DEFAULT_BYTE_PRICE = 100;    // 100 microAlgos per KB
+const DEFAULT_PERMANENT_MULTIPLIER = 5; // 5x multiplier for permanent storage
+
 // Mock StorageOrderClient for the price estimation
 // This simplifies the implementation since we don't need the full client functionality
 class MockStorageOrderClient {
-  constructor() {
-    // Default parameters based on testnet values
-    this.basePrice = 250000; // 0.25 Algos base price
-    this.bytePrice = 100;    // 100 microAlgos per KB
-    this.permanentMultiplier = 5; // 5x multiplier for permanent storage
+  constructor(basePrice, bytePrice, permanentMultiplier) {
+    // Parameters based on testnet values or custom values
+    this.basePrice = basePrice || DEFAULT_BASE_PRICE;
+    this.bytePrice = bytePrice || DEFAULT_BYTE_PRICE;
+    this.permanentMultiplier = permanentMultiplier || DEFAULT_PERMANENT_MULTIPLIER;
   }
 
   compose() {
@@ -92,7 +97,11 @@ async function getPrice(algod, appClient, size, isPermanent = false) {
 
 // Home route
 app.get('/', (req, res) => {
-  res.render('index');
+  res.render('index', {
+    defaultBasePrice: DEFAULT_BASE_PRICE,
+    defaultBytePrice: DEFAULT_BYTE_PRICE,
+    defaultPermanentMultiplier: DEFAULT_PERMANENT_MULTIPLIER
+  });
 });
 
 // Calculate price route
@@ -105,10 +114,14 @@ app.post('/calculate-price', async (req, res) => {
     const file = req.files.file;
     const fileSize = file.size;
     const isPermanent = req.body.isPermanent === 'true';
+    
+    // Get custom price parameters if provided
+    const basePrice = parseInt(req.body.basePrice) || DEFAULT_BASE_PRICE;
+    const bytePrice = parseInt(req.body.bytePrice) || DEFAULT_BYTE_PRICE;
 
     try {
-      // Use the mock client for price estimation
-      const appClient = new MockStorageOrderClient();
+      // Use the mock client for price estimation with custom parameters
+      const appClient = new MockStorageOrderClient(basePrice, bytePrice);
 
       // Get the price
       const price = await getPrice(algodClient, appClient, fileSize, isPermanent);
@@ -116,12 +129,24 @@ app.post('/calculate-price', async (req, res) => {
       // Convert microAlgos to Algos for display
       const priceInAlgos = price / 1000000;
       
+      // Return the calculation breakdown as well
+      const sizeInKB = Math.ceil(fileSize / 1024);
+      const byteCost = sizeInKB * bytePrice;
+      const baseTotal = basePrice + byteCost;
+      const permanentMultiplier = isPermanent ? DEFAULT_PERMANENT_MULTIPLIER : 1;
+      
       res.json({ 
         success: true, 
-        fileSize, 
+        fileSize,
+        sizeInKB, 
+        basePrice,
+        bytePrice,
+        byteCost,
+        baseTotal,
+        permanentMultiplier,
         price, 
         priceInAlgos,
-        isPermanent 
+        isPermanent
       });
     } catch (error) {
       console.error('Error in price calculation:', error);
