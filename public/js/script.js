@@ -4,7 +4,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const errorDiv = document.getElementById('error');
     const loadingDiv = document.getElementById('loading');
     const customParamsSection = document.getElementById('customParamsSection');
-    const recalculateBtn = document.getElementById('recalculateBtn');
     
     // Flag per verificare se è il primo calcolo
     let isFirstCalculation = true;
@@ -74,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
             priceInAlgosSpan.textContent = (totalPrice / 1000000).toLocaleString(undefined, {
                 minimumFractionDigits: 6,
                 maximumFractionDigits: 6
-            });
+            }) + " ALGO";
         }
     }
     
@@ -120,7 +119,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 priceInAlgosSpan.textContent = (data.priceInAlgos).toLocaleString(undefined, {
                     minimumFractionDigits: 6,
                     maximumFractionDigits: 6
-                }) + " Algos";
+                }) + " ALGO";
                 
                 // Display calculation details
                 sizeInKBSpan.textContent = data.sizeInKB.toLocaleString();
@@ -171,11 +170,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Form submission for accurate server-side calculation
     uploadForm.addEventListener('submit', function(e) {
         e.preventDefault();
-        calculatePrice();
-    });
-    
-    // Ricalcola con parametri personalizzati
-    recalculateBtn.addEventListener('click', function() {
         calculatePrice();
     });
     

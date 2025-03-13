@@ -1,106 +1,103 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="it">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Storage Price Estimator</title>
+    <title>Algorand Storage Estimator</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-    <div class="container-fluid mt-5">
+    <div class="container-fluid mt-4">
         <div class="row justify-content-center">
             <div class="col-lg-8 col-xl-9 mb-4">
                 <div class="card h-100">
                     <div class="card-header bg-primary text-white">
-                        <h2 class="text-center">Algorand Storage Price Estimator</h2>
+                        <h2 class="text-center mb-0">Stima Costi Storage su Algorand</h2>
                     </div>
                     <div class="card-body">
                         <form id="uploadForm" enctype="multipart/form-data">
                             <div class="mb-3">
-                                <label for="file" class="form-label">Select File to Estimate Storage Cost</label>
+                                <label for="file" class="form-label">Seleziona un file</label>
                                 <input type="file" class="form-control" id="file" name="file" required>
-                                <div id="fileHelp" class="form-text">Select any file to calculate the storage cost on Algorand.</div>
+                                <div class="form-text">Il costo verrà calcolato in base alla dimensione del file e alle impostazioni di archiviazione.</div>
                             </div>
                             
                             <div class="mb-3 form-check">
                                 <input type="checkbox" class="form-check-input" id="isPermanent" name="isPermanent">
-                                <label class="form-check-label" for="isPermanent">Permanent Storage (Added to Renewal Pool)</label>
+                                <label class="form-check-label" for="isPermanent">Archiviazione permanente (5x costo)</label>
                             </div>
                             
                             <!-- Parametri personalizzati nascosti all'inizio -->
                             <div id="customParamsSection" class="mb-4" style="display: none;">
-                                <div class="alert alert-success mb-3">
-                                    <strong>Primo calcolo completato!</strong> Il prezzo è stato calcolato in base ai dati attuali di mercato. Ora puoi modificare i parametri per vedere come cambia il prezzo.
+                                <div class="alert alert-success mb-3 py-2">
+                                    <strong>Costo calcolato ai prezzi attuali.</strong> Modifica i parametri per simulare scenari diversi.
                                 </div>
                                 
-                                <h5>Parametri di Prezzo Personalizzati</h5>
-                                <p class="text-muted small mb-3">Modifica questi parametri per vedere come influenzano il costo di archiviazione in tempo reale.</p>
-                                
-                                <div class="mb-3">
-                                    <label for="basePrice" class="form-label d-flex justify-content-between">
-                                        <span>Prezzo Base (microAlgos):</span>
-                                        <span id="basePriceValue"><%= defaultBasePrice %></span>
-                                    </label>
-                                    <input type="range" class="form-range" id="basePrice" name="basePrice" 
-                                        min="100000" max="500000" step="10000" value="<%= defaultBasePrice %>">
-                                    <div class="d-flex justify-content-between small text-muted">
-                                        <span>100,000 (0.1 Algos)</span>
-                                        <span>500,000 (0.5 Algos)</span>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="basePrice" class="form-label d-flex justify-content-between">
+                                                <span>Prezzo base (µA):</span>
+                                                <span id="basePriceValue"><%= defaultBasePrice %></span>
+                                            </label>
+                                            <input type="range" class="form-range" id="basePrice" name="basePrice" 
+                                                min="100000" max="500000" step="10000" value="<%= defaultBasePrice %>">
+                                            <div class="d-flex justify-content-between small text-muted">
+                                                <span>0.1 Algos</span>
+                                                <span>0.5 Algos</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="bytePrice" class="form-label d-flex justify-content-between">
+                                                <span>Prezzo per KB (µA):</span>
+                                                <span id="bytePriceValue"><%= defaultBytePrice %></span>
+                                            </label>
+                                            <input type="range" class="form-range" id="bytePrice" name="bytePrice" 
+                                                min="50" max="200" step="5" value="<%= defaultBytePrice %>">
+                                            <div class="d-flex justify-content-between small text-muted">
+                                                <span>50</span>
+                                                <span>200</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                                
-                                <div class="mb-3">
-                                    <label for="bytePrice" class="form-label d-flex justify-content-between">
-                                        <span>Prezzo per KB (microAlgos):</span>
-                                        <span id="bytePriceValue"><%= defaultBytePrice %></span>
-                                    </label>
-                                    <input type="range" class="form-range" id="bytePrice" name="bytePrice" 
-                                        min="50" max="200" step="5" value="<%= defaultBytePrice %>">
-                                    <div class="d-flex justify-content-between small text-muted">
-                                        <span>50</span>
-                                        <span>200</span>
-                                    </div>
-                                </div>
-                                
-                                <button type="button" id="recalculateBtn" class="btn btn-outline-primary btn-sm">Ricalcola con questi parametri</button>
                             </div>
                             
                             <div class="text-center">
-                                <button type="submit" class="btn btn-primary">Calculate Price</button>
+                                <button type="submit" class="btn btn-primary">Calcola costo</button>
                             </div>
                         </form>
                         
-                        <div id="error" class="mt-4 alert alert-danger" style="display: none;">
-                            <h4 class="alert-heading">Error</h4>
-                            <hr>
-                            <p id="errorMessage"></p>
+                        <div id="error" class="mt-3 alert alert-danger py-2" style="display: none;">
+                            <p class="mb-0" id="errorMessage"></p>
                         </div>
                         
-                        <div id="loading" class="text-center mt-4" style="display: none;">
+                        <div id="loading" class="text-center mt-3" style="display: none;">
                             <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Loading...</span>
+                                <span class="visually-hidden">Calcolo in corso...</span>
                             </div>
-                            <p class="mt-2">Calculating storage price...</p>
+                            <p class="mt-2">Calcolo in corso...</p>
                         </div>
                         
                         <div class="mt-4 alert alert-secondary">
-                            <h5>Nota sui Costi di Archiviazione</h5>
-                            <p>I costi di archiviazione mostrati sono stime e possono variare in base a diversi fattori:</p>
-                            <ul>
-                                <li><strong>Dimensione del file:</strong> Il costo aumenta linearmente con la dimensione in KB.</li>
-                                <li><strong>Tipo di archiviazione:</strong> L'archiviazione permanente ha un moltiplicatore di 5x rispetto a quella temporanea.</li>
-                                <li><strong>Prezzo base:</strong> Un costo fisso applicato a ogni transazione indipendentemente dalla dimensione del file.</li>
-                                <li><strong>Prezzo per KB:</strong> Il costo variabile per kilobyte di dati.</li>
-                            </ul>
-                            <p class="mb-1">In un ambiente di produzione, i costi potrebbero essere influenzati anche da:</p>
-                            <ul>
-                                <li>Condizioni di mercato della rete Algorand</li>
-                                <li>Modifiche ai parametri del contratto smart</li>
-                                <li>Disponibilità dei nodi di archiviazione</li>
-                                <li>Durata dell'archiviazione</li>
-                            </ul>
-                            <p class="mt-2 small text-muted"><strong>Formula di calcolo:</strong> basePrice + (sizeInKB * bytePrice) * [permanentMultiplier se permanente]</p>
+                            <h5 class="mb-2">Fattori che influenzano il costo:</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <ul class="mb-0">
+                                        <li><strong>Dimensione file:</strong> Costo per KB di dati</li>
+                                        <li><strong>Tipo archiviazione:</strong> Temporanea o permanente (5x)</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <ul class="mb-0">
+                                        <li><strong>Prezzo base:</strong> Costo fisso per transazione</li>
+                                        <li><strong>Condizioni di mercato:</strong> Variazioni nella rete</li>
+                                    </ul>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -110,48 +107,56 @@
             <div class="col-lg-4 col-xl-3">
                 <div id="results" class="card h-100 sidebar-results" style="display: none;">
                     <div class="card-header bg-info text-white">
-                        <h4 class="mb-0">Risultati</h4>
+                        <h4 class="mb-0">Risultato</h4>
                     </div>
                     <div class="card-body">
-                        <h5 class="card-title">Price Estimation Results</h5>
-                        <hr>
                         <div class="mb-3">
-                            <p><strong>File Size:</strong> <span id="fileSize"></span></p>
-                            <p><strong>Storage Type:</strong> <span id="storageType"></span></p>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Dimensione:</span>
+                                <strong id="fileSize"></strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Archiviazione:</span>
+                                <strong id="storageType"></strong>
+                            </div>
                         </div>
                         
-                        <div class="price-section p-3 rounded mb-3 bg-light">
-                            <p class="mb-1"><strong>Price (microAlgos):</strong></p>
-                            <h4 class="text-primary" id="priceInMicroAlgos"></h4>
-                            <p class="mb-1"><strong>Price (Algos):</strong></p>
-                            <h5 class="text-primary" id="priceInAlgos"></h5>
+                        <div class="price-section p-3 rounded mb-3">
+                            <div class="d-flex align-items-baseline justify-content-between">
+                                <h5 class="mb-0">Costo totale <span class="small">(ALGO)</span>:</h5>
+                                <h4 class="mb-0" id="priceInAlgos"></h4>
+                            </div>
+                            <div class="text-end text-muted small">
+                                <span id="priceInMicroAlgos"></span> µA
+                            </div>
                         </div>
                         
-                        <h5 class="mt-4">Dettaglio Calcolo</h5>
-                        <hr>
-                        <div class="d-flex justify-content-between">
-                            <span>Dimensione in KB:</span>
-                            <strong id="sizeInKB"></strong>
+                        <h6 class="mt-3 mb-2">Dettaglio calcolo</h6>
+                        <div class="calc-details">
+                            <div class="d-flex justify-content-between">
+                                <span>KB totali:</span>
+                                <strong id="sizeInKB"></strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Prezzo base:</span>
+                                <strong><span id="basePriceResult"></span> µA</strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Costo KB:</span>
+                                <strong><span id="byteCost"></span> µA</strong>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Subtotale:</span>
+                                <strong><span id="baseTotal"></span> µA</strong>
+                            </div>
+                            <div class="d-flex justify-content-between fw-bold">
+                                <span>Moltiplicatore:</span>
+                                <span id="permanentMultiplier">1</span>x
+                            </div>
                         </div>
-                        <div class="d-flex justify-content-between">
-                            <span>Prezzo Base:</span>
-                            <strong><span id="basePriceResult"></span> µA</strong>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span>Costo per KB:</span>
-                            <strong><span id="bytePrice"></span> µA</strong>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span>Costo Totale Byte:</span>
-                            <strong><span id="byteCost"></span> µA</strong>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span>Prezzo Base + Byte:</span>
-                            <strong><span id="baseTotal"></span> µA</strong>
-                        </div>
-                        <div class="d-flex justify-content-between">
-                            <span>Moltiplicatore:</span>
-                            <strong><span id="permanentMultiplier"></span>x</strong>
+                        
+                        <div class="mt-3 text-center">
+                            <small class="text-muted">µA = microAlgos (1 ALGO = 1,000,000 µA)</small>
                         </div>
                     </div>
                 </div>
