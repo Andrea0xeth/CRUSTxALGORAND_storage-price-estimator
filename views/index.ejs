@@ -8,10 +8,10 @@
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-    <div class="container mt-5">
-        <div class="row">
-            <div class="col-md-8 offset-md-2">
-                <div class="card">
+    <div class="container-fluid mt-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-xl-9 mb-4">
+                <div class="card h-100">
                     <div class="card-header bg-primary text-white">
                         <h2 class="text-center">Algorand Storage Price Estimator</h2>
                     </div>
@@ -71,43 +71,6 @@
                             </div>
                         </form>
                         
-                        <div id="results" class="mt-4" style="display: none;">
-                            <div class="alert alert-info">
-                                <h4 class="alert-heading">Price Estimation Results</h4>
-                                <hr>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <p><strong>File Size:</strong> <span id="fileSize"></span></p>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <p><strong>Storage Type:</strong> <span id="storageType"></span></p>
-                                    </div>
-                                </div>
-                                <div class="row mt-2">
-                                    <div class="col-md-6">
-                                        <p><strong>Price (microAlgos):</strong> <span id="priceInMicroAlgos"></span></p>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <p><strong>Price (Algos):</strong> <span id="priceInAlgos"></span></p>
-                                    </div>
-                                </div>
-                                <hr>
-                                <h5>Dettaglio Calcolo</h5>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <p><strong>Dimensione in KB:</strong> <span id="sizeInKB"></span></p>
-                                        <p><strong>Prezzo Base:</strong> <span id="basePriceResult"></span> microAlgos</p>
-                                        <p><strong>Costo per KB:</strong> <span id="bytePrice"></span> microAlgos</p>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <p><strong>Costo Totale Byte:</strong> <span id="byteCost"></span> microAlgos</p>
-                                        <p><strong>Prezzo Base + Byte:</strong> <span id="baseTotal"></span> microAlgos</p>
-                                        <p><strong>Moltiplicatore Permanente:</strong> <span id="permanentMultiplier"></span>x</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
                         <div id="error" class="mt-4 alert alert-danger" style="display: none;">
                             <h4 class="alert-heading">Error</h4>
                             <hr>
@@ -138,6 +101,57 @@
                                 <li>Durata dell'archiviazione</li>
                             </ul>
                             <p class="mt-2 small text-muted"><strong>Formula di calcolo:</strong> basePrice + (sizeInKB * bytePrice) * [permanentMultiplier se permanente]</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sidebar per i risultati -->
+            <div class="col-lg-4 col-xl-3">
+                <div id="results" class="card h-100 sidebar-results" style="display: none;">
+                    <div class="card-header bg-info text-white">
+                        <h4 class="mb-0">Risultati</h4>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="card-title">Price Estimation Results</h5>
+                        <hr>
+                        <div class="mb-3">
+                            <p><strong>File Size:</strong> <span id="fileSize"></span></p>
+                            <p><strong>Storage Type:</strong> <span id="storageType"></span></p>
+                        </div>
+                        
+                        <div class="price-section p-3 rounded mb-3 bg-light">
+                            <p class="mb-1"><strong>Price (microAlgos):</strong></p>
+                            <h4 class="text-primary" id="priceInMicroAlgos"></h4>
+                            <p class="mb-1"><strong>Price (Algos):</strong></p>
+                            <h5 class="text-primary" id="priceInAlgos"></h5>
+                        </div>
+                        
+                        <h5 class="mt-4">Dettaglio Calcolo</h5>
+                        <hr>
+                        <div class="d-flex justify-content-between">
+                            <span>Dimensione in KB:</span>
+                            <strong id="sizeInKB"></strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Prezzo Base:</span>
+                            <strong><span id="basePriceResult"></span> µA</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Costo per KB:</span>
+                            <strong><span id="bytePrice"></span> µA</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Costo Totale Byte:</span>
+                            <strong><span id="byteCost"></span> µA</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Prezzo Base + Byte:</span>
+                            <strong><span id="baseTotal"></span> µA</strong>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Moltiplicatore:</span>
+                            <strong><span id="permanentMultiplier"></span>x</strong>
                         </div>
                     </div>
                 </div>

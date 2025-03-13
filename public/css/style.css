@@ -46,4 +46,41 @@ body {
 .spinner-border {
     width: 3rem;
     height: 3rem;
+}
+
+/* Stili per la sidebar dei risultati */
+.sidebar-results {
+    position: sticky;
+    top: 20px;
+}
+
+.sidebar-results .card-header {
+    background-color: #17a2b8;
+}
+
+.price-section {
+    border-left: 4px solid #0367a6;
+    background-color: #f1f8ff !important;
+}
+
+.price-section h4, .price-section h5 {
+    color: #0367a6;
+    font-weight: bold;
+}
+
+.d-flex.justify-content-between {
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.d-flex.justify-content-between:last-child {
+    border-bottom: none;
+}
+
+/* Media query per responsiveness */
+@media (max-width: 991px) {
+    .sidebar-results {
+        margin-top: 20px;
+    }
 } 
