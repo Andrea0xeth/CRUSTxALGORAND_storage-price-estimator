@@ -3,6 +3,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const resultsDiv = document.getElementById('results');
     const errorDiv = document.getElementById('error');
     const loadingDiv = document.getElementById('loading');
+    const customParamsSection = document.getElementById('customParamsSection');
+    const recalculateBtn = document.getElementById('recalculateBtn');
+    
+    // Flag per verificare se è il primo calcolo
+    let isFirstCalculation = true;
     
     // Result display elements
     const fileSizeSpan = document.getElementById('fileSize');
@@ -73,20 +78,19 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Add event listeners to all parameters for real-time preview
-    fileInput.addEventListener('change', updatePricePreview);
-    isPermanentCheckbox.addEventListener('change', updatePricePreview);
-    basePriceInput.addEventListener('input', updatePricePreview);
-    bytePriceInput.addEventListener('input', updatePricePreview);
-    
-    // Form submission for accurate server-side calculation
-    uploadForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
+    // Funzione per calcolare il prezzo
+    async function calculatePrice(showLoading = true) {
+        if (!fileInput.files || !fileInput.files[0]) {
+            alert('Seleziona un file per stimare il costo.');
+            return;
+        }
         
-        // Reset display
-        resultsDiv.style.display = 'none';
-        errorDiv.style.display = 'none';
-        loadingDiv.style.display = 'block';
+        if (showLoading) {
+            // Reset display
+            resultsDiv.style.display = 'none';
+            errorDiv.style.display = 'none';
+            loadingDiv.style.display = 'block';
+        }
         
         // Get form data
         const formData = new FormData(uploadForm);
@@ -128,6 +132,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Show results
                 resultsDiv.style.display = 'block';
+                
+                // Se è il primo calcolo, mostra i parametri personalizzati
+                if (isFirstCalculation) {
+                    customParamsSection.style.display = 'block';
+                    isFirstCalculation = false;
+                }
             }
         } catch (error) {
             // Display error
@@ -136,8 +146,38 @@ document.addEventListener('DOMContentLoaded', function() {
             errorDiv.style.display = 'block';
         } finally {
             // Hide loading
-            loadingDiv.style.display = 'none';
+            if (showLoading) {
+                loadingDiv.style.display = 'none';
+            }
         }
+    }
+    
+    // Add event listeners to all parameters for real-time preview
+    fileInput.addEventListener('change', function() {
+        // Reset custom params if file is changed
+        if (!isFirstCalculation) {
+            updatePricePreview();
+        }
+    });
+    
+    isPermanentCheckbox.addEventListener('change', function() {
+        if (!isFirstCalculation) {
+            updatePricePreview();
+        }
+    });
+    
+    basePriceInput.addEventListener('input', updatePricePreview);
+    bytePriceInput.addEventListener('input', updatePricePreview);
+    
+    // Form submission for accurate server-side calculation
+    uploadForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        calculatePrice();
+    });
+    
+    // Ricalcola con parametri personalizzati
+    recalculateBtn.addEventListener('click', function() {
+        calculatePrice();
     });
     
     // Function to format file size

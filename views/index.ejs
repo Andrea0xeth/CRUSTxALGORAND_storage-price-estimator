@@ -28,7 +28,12 @@
                                 <label class="form-check-label" for="isPermanent">Permanent Storage (Added to Renewal Pool)</label>
                             </div>
                             
-                            <div class="mb-4">
+                            <!-- Parametri personalizzati nascosti all'inizio -->
+                            <div id="customParamsSection" class="mb-4" style="display: none;">
+                                <div class="alert alert-success mb-3">
+                                    <strong>Primo calcolo completato!</strong> Il prezzo è stato calcolato in base ai dati attuali di mercato. Ora puoi modificare i parametri per vedere come cambia il prezzo.
+                                </div>
+                                
                                 <h5>Parametri di Prezzo Personalizzati</h5>
                                 <p class="text-muted small mb-3">Modifica questi parametri per vedere come influenzano il costo di archiviazione in tempo reale.</p>
                                 
@@ -57,6 +62,8 @@
                                         <span>200</span>
                                     </div>
                                 </div>
+                                
+                                <button type="button" id="recalculateBtn" class="btn btn-outline-primary btn-sm">Ricalcola con questi parametri</button>
                             </div>
                             
                             <div class="text-center">
