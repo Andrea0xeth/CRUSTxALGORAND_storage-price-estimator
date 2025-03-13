@@ -33,7 +33,7 @@
                                 <% if (algoPrice && crustPrice) { %>
                                 <span class="badge bg-primary">ALGO: $<span id="algoPrice"><%= algoPrice.toFixed(4) %></span></span>
                                 <span class="badge bg-info">CRUST: $<span id="crustPrice"><%= crustPrice.toFixed(4) %></span></span>
-                                <small class="d-block mt-1">Prezzi aggiornati ogni 2 minuti</small>
+                                <small class="d-block mt-1">Aggiorno tra <span id="priceUpdateCountdown">120</span> secondi</small>
                                 <% } else { %>
                                 <span class="badge bg-warning">Prezzi non disponibili</span>
                                 <% } %>
@@ -247,6 +247,19 @@
             const crustPriceElement = document.getElementById('crustPrice');
             
             if (algoPriceElement && crustPriceElement) {
+                // Implementa il countdown per l'aggiornamento
+                const countdownElement = document.getElementById('priceUpdateCountdown');
+                let countdownValue = 120; // 2 minuti in secondi
+                
+                // Aggiorna il countdown ogni secondo
+                const countdownInterval = setInterval(() => {
+                    countdownValue--;
+                    if (countdownValue <= 0) {
+                        countdownValue = 120; // Reset dopo l'aggiornamento
+                    }
+                    countdownElement.textContent = countdownValue;
+                }, 1000);
+                
                 // Funzione per aggiornare i prezzi
                 async function updateTokenPrices() {
                     try {
@@ -256,6 +269,7 @@
                         if (data.success) {
                             algoPriceElement.textContent = data.algoPrice.toFixed(4);
                             crustPriceElement.textContent = data.crustPrice.toFixed(4);
+                            countdownValue = 120; // Reset countdown
                             
                             // Aggiorna anche i calcoli di equivalenza se sono visibili
                             const crustEquivalentDiv = document.getElementById('crustEquivalent');
