@@ -46,6 +46,11 @@ let tokenPriceCache = {
   timestamp: null
 };
 
+// Gestione dei rate limit
+let nextAllowedFetchTime = 0; // Timestamp che indica quando possiamo fare la prossima richiesta
+const DEFAULT_CACHE_DURATION = 60 * 1000; // 1 minuto di cache di default
+let currentBackoffTime = 60 * 1000; // Inizia con 1 minuto di backoff
+
 /**
  * Ottiene i prezzi attuali dei token da CoinGecko
  * @param {boolean} forceRefresh Se true, ignora la cache e recupera sempre i prezzi freschi
@@ -53,51 +58,112 @@ let tokenPriceCache = {
  */
 async function getTokenPrices(forceRefresh = false) {
   try {
-    // Se abbiamo prezzi in cache recenti (meno di 10 secondi) e non è richiesto un refresh forzato, usiamo quelli
     const now = Date.now();
-    if (!forceRefresh && tokenPriceCache.timestamp && (now - tokenPriceCache.timestamp < 10 * 1000)) {
+    
+    // Se abbiamo prezzi in cache validi e non è richiesto un refresh forzato, usiamo quelli
+    if (!forceRefresh && tokenPriceCache.timestamp && (now - tokenPriceCache.timestamp < DEFAULT_CACHE_DURATION)) {
       console.log('Using cached token prices');
       return {
         algoPrice: tokenPriceCache.algo,
         crustPrice: tokenPriceCache.crust
       };
     }
+    
+    // Controlliamo se possiamo fare una richiesta o se dobbiamo aspettare
+    if (now < nextAllowedFetchTime) {
+      const waitTime = Math.ceil((nextAllowedFetchTime - now) / 1000);
+      console.log(`Rate limit in effect. Need to wait ${waitTime} seconds before next request.`);
+      
+      // Se abbiamo prezzi in cache, li usiamo anche se potrebbero essere vecchi
+      if (tokenPriceCache.algo && tokenPriceCache.crust) {
+        console.log('Using older cached token prices while rate limited');
+        return {
+          algoPrice: tokenPriceCache.algo,
+          crustPrice: tokenPriceCache.crust
+        };
+      }
+      
+      // Altrimenti, utilizziamo valori predefiniti
+      return { algoPrice: 0.15, crustPrice: 0.70 };
+    }
 
     // Altrimenti, ottieni i prezzi aggiornati
     console.log('Fetching fresh token prices from CoinGecko');
-    const response = await axios.get(
-      'https://api.coingecko.com/api/v3/simple/price',
-      {
-        params: {
-          ids: 'algorand,crust-network',
-          vs_currencies: 'usd'
+    try {
+      const response = await axios.get(
+        'https://api.coingecko.com/api/v3/simple/price',
+        {
+          params: {
+            ids: 'algorand,crust-network',
+            vs_currencies: 'usd'
+          }
         }
+      );
+
+      // Reset del backoff se la richiesta ha successo
+      currentBackoffTime = 60 * 1000; // Reset a 1 minuto
+
+      // Estrai i prezzi dalla risposta
+      const algoPrice = response.data['algorand']?.usd || 0;
+      const crustPrice = response.data['crust-network']?.usd || 0;
+
+      // Aggiorna la cache
+      tokenPriceCache = {
+        algo: algoPrice,
+        crust: crustPrice,
+        timestamp: now
+      };
+
+      console.log(`Token prices: ALGO = $${algoPrice}, CRUST = $${crustPrice}`);
+      return { algoPrice, crustPrice };
+    } catch (error) {
+      // Gestione specifica per errore 429 (Too Many Requests)
+      if (error.response && error.response.status === 429) {
+        // Ottieni il valore dell'header Retry-After se presente
+        const retryAfter = error.response.headers['retry-after'];
+        const retrySeconds = retryAfter ? parseInt(retryAfter) : 60; // Default a 60 secondi se non specificato
+        
+        // Calcola quando possiamo fare la prossima richiesta
+        nextAllowedFetchTime = now + (retrySeconds * 1000);
+        
+        // Aumenta il backoff per la prossima volta (max 30 minuti)
+        currentBackoffTime = Math.min(currentBackoffTime * 2, 30 * 60 * 1000);
+        
+        console.log(`Rate limited by CoinGecko API. Need to wait ${retrySeconds} seconds before next request.`);
+        console.log(`Next backoff time will be ${Math.floor(currentBackoffTime/1000)} seconds.`);
+        
+        // Se abbiamo prezzi in cache, usiamo quelli
+        if (tokenPriceCache.algo && tokenPriceCache.crust) {
+          console.log('Using cached token prices due to rate limit');
+          return {
+            algoPrice: tokenPriceCache.algo,
+            crustPrice: tokenPriceCache.crust
+          };
+        }
+      } else {
+        console.error('Error fetching token prices:', error.message);
       }
-    );
-
-    // Estrai i prezzi dalla risposta
-    const algoPrice = response.data['algorand']?.usd || 0;
-    const crustPrice = response.data['crust-network']?.usd || 0;
-
-    // Aggiorna la cache
-    tokenPriceCache = {
-      algo: algoPrice,
-      crust: crustPrice,
-      timestamp: now
-    };
-
-    console.log(`Token prices: ALGO = $${algoPrice}, CRUST = $${crustPrice}`);
-    return { algoPrice, crustPrice };
+      
+      // Se abbiamo prezzi in cache, li usiamo
+      if (tokenPriceCache.algo && tokenPriceCache.crust) {
+        return {
+          algoPrice: tokenPriceCache.algo,
+          crustPrice: tokenPriceCache.crust
+        };
+      }
+      // Altrimenti, utilizziamo valori predefiniti
+      return { algoPrice: 0.15, crustPrice: 0.70 }; // Valori approssimativi come fallback
+    }
   } catch (error) {
-    console.error('Error fetching token prices:', error);
-    // Se c'è un errore ma abbiamo prezzi in cache, usiamo quelli
+    console.error('Unexpected error in getTokenPrices:', error);
+    // Se abbiamo prezzi in cache, usiamo quelli
     if (tokenPriceCache.algo && tokenPriceCache.crust) {
       return {
         algoPrice: tokenPriceCache.algo,
         crustPrice: tokenPriceCache.crust
       };
     }
-    // Altrimenti, utilizziamo valori predefiniti ragionevoli
+    // Altrimenti, utilizziamo valori predefiniti
     return { algoPrice: 0.15, crustPrice: 0.70 }; // Valori approssimativi come fallback
   }
 }
@@ -330,8 +396,8 @@ app.get('/api/token-prices', async (req, res) => {
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`);
   
-  // Imposta un timer per aggiornare i prezzi dei token ogni 10 secondi
-  console.log('Starting automatic token price updates every 10 seconds...');
+  // Imposta un timer per aggiornare i prezzi dei token periodicamente
+  console.log('Starting automatic token price updates every 2 minutes...');
   
   // Aggiorna subito i prezzi una prima volta
   getTokenPrices(true).then(({ algoPrice, crustPrice }) => {
@@ -349,5 +415,5 @@ app.listen(port, () => {
     }).catch(error => {
       console.error('Error in scheduled token price update:', error);
     });
-  }, 10000); // 10 secondi
+  }, 2 * 60 * 1000); // 2 minuti
 }); 

@@ -33,7 +33,7 @@
                                 <% if (algoPrice && crustPrice) { %>
                                 <span class="badge bg-primary">ALGO: $<span id="algoPrice"><%= algoPrice.toFixed(4) %></span></span>
                                 <span class="badge bg-info">CRUST: $<span id="crustPrice"><%= crustPrice.toFixed(4) %></span></span>
-                                <small class="d-block mt-1">Prezzi aggiornati ogni 10 secondi</small>
+                                <small class="d-block mt-1">Prezzi aggiornati ogni 2 minuti</small>
                                 <% } else { %>
                                 <span class="badge bg-warning">Prezzi non disponibili</span>
                                 <% } %>
@@ -277,8 +277,8 @@
                     }
                 }
                 
-                // Aggiorna ogni 10 secondi
-                setInterval(updateTokenPrices, 10000);
+                // Aggiorna ogni 2 minuti
+                setInterval(updateTokenPrices, 2 * 60 * 1000);
             }
         });
     </script>
