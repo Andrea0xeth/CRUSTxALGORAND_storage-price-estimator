@@ -113,20 +113,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 fileSizeSpan.textContent = formattedSize;
                 
                 // Display storage type
-                storageTypeSpan.textContent = data.isPermanent ? 'Permanent' : 'Temporary';
+                storageTypeSpan.textContent = data.isPermanent ? 'Permanente' : 'Temporanea';
                 
                 // Display prices
                 priceInMicroAlgosSpan.textContent = data.price.toLocaleString();
-                priceInAlgosSpan.textContent = data.priceInAlgos.toLocaleString(undefined, {
+                priceInAlgosSpan.textContent = (data.priceInAlgos).toLocaleString(undefined, {
                     minimumFractionDigits: 6,
                     maximumFractionDigits: 6
-                });
+                }) + " Algos";
                 
                 // Display calculation details
                 sizeInKBSpan.textContent = data.sizeInKB.toLocaleString();
                 basePriceResultSpan.textContent = data.basePrice.toLocaleString();
-                bytePriceSpan.textContent = data.bytePrice;
-                byteCostSpan.textContent = data.byteCost.toLocaleString();
+                bytePriceSpan.textContent = data.byteCost.toLocaleString();
                 baseTotalSpan.textContent = data.baseTotal.toLocaleString();
                 permanentMultiplierSpan.textContent = data.permanentMultiplier;
                 
@@ -142,7 +141,7 @@ document.addEventListener('DOMContentLoaded', function() {
         } catch (error) {
             // Display error
             console.error('Error:', error);
-            errorMessageP.textContent = 'Failed to calculate price. Please try again.';
+            errorMessageP.textContent = 'Errore nel calcolo. Riprova.';
             errorDiv.style.display = 'block';
         } finally {
             // Hide loading
