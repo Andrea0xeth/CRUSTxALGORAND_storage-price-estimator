@@ -5,6 +5,7 @@ const path = require('path');
 const algosdk = require('algosdk');
 const algokit = require('@algorandfoundation/algokit-utils');
 const fs = require('fs');
+const axios = require('axios');
 
 // Initialize the express app
 const app = express();
@@ -38,14 +39,78 @@ const DEFAULT_BASE_PRICE = 250000; // 0.25 Algos base price
 const DEFAULT_BYTE_PRICE = 100;    // 100 microAlgos per KB
 const DEFAULT_PERMANENT_MULTIPLIER = 5; // 5x multiplier for permanent storage
 
+// Cache per i prezzi dei token
+let tokenPriceCache = {
+  algo: null,
+  crust: null,
+  timestamp: null
+};
+
+/**
+ * Ottiene i prezzi attuali dei token da CoinGecko
+ * @returns {Promise<{algoPrice: number, crustPrice: number}>}
+ */
+async function getTokenPrices() {
+  try {
+    // Se abbiamo prezzi in cache recenti (meno di 5 minuti), usiamo quelli
+    const now = Date.now();
+    if (tokenPriceCache.timestamp && (now - tokenPriceCache.timestamp < 5 * 60 * 1000)) {
+      console.log('Using cached token prices');
+      return {
+        algoPrice: tokenPriceCache.algo,
+        crustPrice: tokenPriceCache.crust
+      };
+    }
+
+    // Altrimenti, ottieni i prezzi aggiornati
+    console.log('Fetching fresh token prices from CoinGecko');
+    const response = await axios.get(
+      'https://api.coingecko.com/api/v3/simple/price',
+      {
+        params: {
+          ids: 'algorand,crust-network',
+          vs_currencies: 'usd'
+        }
+      }
+    );
+
+    // Estrai i prezzi dalla risposta
+    const algoPrice = response.data['algorand']?.usd || 0;
+    const crustPrice = response.data['crust-network']?.usd || 0;
+
+    // Aggiorna la cache
+    tokenPriceCache = {
+      algo: algoPrice,
+      crust: crustPrice,
+      timestamp: now
+    };
+
+    console.log(`Token prices: ALGO = $${algoPrice}, CRUST = $${crustPrice}`);
+    return { algoPrice, crustPrice };
+  } catch (error) {
+    console.error('Error fetching token prices:', error);
+    // Se c'è un errore ma abbiamo prezzi in cache, usiamo quelli
+    if (tokenPriceCache.algo && tokenPriceCache.crust) {
+      return {
+        algoPrice: tokenPriceCache.algo,
+        crustPrice: tokenPriceCache.crust
+      };
+    }
+    // Altrimenti, utilizziamo valori predefiniti ragionevoli
+    return { algoPrice: 0.15, crustPrice: 0.70 }; // Valori approssimativi come fallback
+  }
+}
+
 // Mock StorageOrderClient for the price estimation
 // This simplifies the implementation since we don't need the full client functionality
 class MockStorageOrderClient {
-  constructor(basePrice, bytePrice, permanentMultiplier) {
+  constructor(basePrice, bytePrice, permanentMultiplier, algoPrice, crustPrice) {
     // Parameters based on testnet values or custom values
     this.basePrice = basePrice || DEFAULT_BASE_PRICE;
     this.bytePrice = bytePrice || DEFAULT_BYTE_PRICE;
     this.permanentMultiplier = permanentMultiplier || DEFAULT_PERMANENT_MULTIPLIER;
+    this.algoPrice = algoPrice;
+    this.crustPrice = crustPrice;
   }
 
   compose() {
@@ -74,7 +139,22 @@ class MockStorageOrderClient {
                   console.log('No multiplier applied, using temporary storage');
                 }
                 
-                console.log('Final total price:', totalPrice);
+                // Se abbiamo i prezzi dei token, calcoliamo la conversione basata su valore reale
+                if (this.algoPrice && this.crustPrice && this.algoPrice > 0 && this.crustPrice > 0) {
+                  // Prima convertiamo il prezzo base da microALGO a ALGO
+                  const priceInAlgos = totalPrice / 1000000;
+                  
+                  // Calcoliamo l'equivalente in USD del prezzo in ALGO
+                  const priceInUSD = priceInAlgos * this.algoPrice;
+                  
+                  // Calcoliamo quanti CRUST corrispondono a questo valore in USD
+                  const equivalentCRUST = priceInUSD / this.crustPrice;
+                  
+                  console.log(`Price conversions: ${priceInAlgos} ALGO = $${priceInUSD} = ${equivalentCRUST} CRUST`);
+                  
+                  // Il prezzo finale rimane in microALGO
+                  console.log('Final total price in microALGO:', totalPrice);
+                }
                 
                 return {
                   methodResults: [
@@ -113,12 +193,28 @@ async function getPrice(algod, appClient, size, isPermanent = false) {
 }
 
 // Home route
-app.get('/', (req, res) => {
-  res.render('index', {
-    defaultBasePrice: DEFAULT_BASE_PRICE,
-    defaultBytePrice: DEFAULT_BYTE_PRICE,
-    defaultPermanentMultiplier: DEFAULT_PERMANENT_MULTIPLIER
-  });
+app.get('/', async (req, res) => {
+  try {
+    // Ottieni i prezzi attuali dei token
+    const { algoPrice, crustPrice } = await getTokenPrices();
+    
+    res.render('index', {
+      defaultBasePrice: DEFAULT_BASE_PRICE,
+      defaultBytePrice: DEFAULT_BYTE_PRICE,
+      defaultPermanentMultiplier: DEFAULT_PERMANENT_MULTIPLIER,
+      algoPrice,
+      crustPrice
+    });
+  } catch (error) {
+    console.error('Error loading homepage:', error);
+    res.render('index', {
+      defaultBasePrice: DEFAULT_BASE_PRICE,
+      defaultBytePrice: DEFAULT_BYTE_PRICE,
+      defaultPermanentMultiplier: DEFAULT_PERMANENT_MULTIPLIER,
+      algoPrice: null,
+      crustPrice: null
+    });
+  }
 });
 
 // Calculate price route
@@ -148,8 +244,17 @@ app.post('/calculate-price', async (req, res) => {
     const bytePrice = parseInt(req.body.bytePrice) || DEFAULT_BYTE_PRICE;
 
     try {
+      // Ottieni i prezzi attuali dei token
+      const { algoPrice, crustPrice } = await getTokenPrices();
+      
       // Use the mock client for price estimation with custom parameters
-      const appClient = new MockStorageOrderClient(basePrice, bytePrice);
+      const appClient = new MockStorageOrderClient(
+        basePrice, 
+        bytePrice, 
+        DEFAULT_PERMANENT_MULTIPLIER,
+        algoPrice,
+        crustPrice
+      );
 
       // Get the price
       const price = await getPrice(algodClient, appClient, fileSize, isPermanent);
@@ -163,6 +268,13 @@ app.post('/calculate-price', async (req, res) => {
       const baseTotal = basePrice + byteCost;
       const permanentMultiplier = isPermanent ? DEFAULT_PERMANENT_MULTIPLIER : 1;
       
+      // Calcola l'equivalente in CRUST
+      let equivalentCRUST = null;
+      if (algoPrice && crustPrice && algoPrice > 0 && crustPrice > 0) {
+        const priceInUSD = priceInAlgos * algoPrice;
+        equivalentCRUST = priceInUSD / crustPrice;
+      }
+      
       res.json({ 
         success: true, 
         fileSize,
@@ -174,7 +286,10 @@ app.post('/calculate-price', async (req, res) => {
         permanentMultiplier,
         price, 
         priceInAlgos,
-        isPermanent
+        isPermanent,
+        algoPrice,
+        crustPrice,
+        equivalentCRUST
       });
     } catch (error) {
       console.error('Error in price calculation:', error);

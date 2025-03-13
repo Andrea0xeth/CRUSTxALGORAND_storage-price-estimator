@@ -29,6 +29,13 @@
                                 <li><strong>Crust Network</strong> garantisce che i file rimangano disponibili su IPFS (pinnaggio)</li>
                                 <li>Il pagamento per il servizio avviene in <strong>Algorand (ALGO)</strong></li>
                             </ol>
+                            <% if (algoPrice && crustPrice) { %>
+                            <div class="mt-2 text-end">
+                                <span class="badge bg-primary">ALGO: $<%= algoPrice.toFixed(4) %></span>
+                                <span class="badge bg-info">CRUST: $<%= crustPrice.toFixed(4) %></span>
+                                <small class="d-block mt-1">Prezzi attuali dei token</small>
+                            </div>
+                            <% } %>
                         </div>
                         
                         <form id="uploadForm" enctype="multipart/form-data">
@@ -163,6 +170,10 @@
                             </div>
                             <div class="text-end text-muted small">
                                 <span id="priceInMicroAlgos"></span> µA
+                            </div>
+                            <div id="crustEquivalent" class="mt-2 text-end" style="display: none">
+                                <span class="badge bg-info">Equivalente: <span id="equivalentCRUST"></span> CRUST</span>
+                                <small class="d-block">Basato sui prezzi di mercato attuali</small>
                             </div>
                         </div>
                         

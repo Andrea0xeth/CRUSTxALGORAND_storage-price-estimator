@@ -14,6 +14,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const priceInMicroAlgosSpan = document.getElementById('priceInMicroAlgos');
     const priceInAlgosSpan = document.getElementById('priceInAlgos');
     const errorMessageP = document.getElementById('errorMessage');
+    const crustEquivalentDiv = document.getElementById('crustEquivalent');
+    const equivalentCRUSTSpan = document.getElementById('equivalentCRUST');
     
     // Calculation details elements
     const sizeInKBSpan = document.getElementById('sizeInKB');
@@ -74,6 +76,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 minimumFractionDigits: 6,
                 maximumFractionDigits: 6
             }) + " ALGO";
+            
+            // Mostra l'equivalente in CRUST se disponibile
+            if (data.equivalentCRUST) {
+                equivalentCRUSTSpan.textContent = data.equivalentCRUST.toFixed(6);
+                crustEquivalentDiv.style.display = 'block';
+            } else {
+                crustEquivalentDiv.style.display = 'none';
+            }
         }
     }
     
@@ -129,6 +139,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     minimumFractionDigits: 6,
                     maximumFractionDigits: 6
                 }) + " ALGO";
+                
+                // Mostra l'equivalente in CRUST se disponibile
+                if (data.equivalentCRUST) {
+                    equivalentCRUSTSpan.textContent = data.equivalentCRUST.toFixed(6);
+                    crustEquivalentDiv.style.display = 'block';
+                } else {
+                    crustEquivalentDiv.style.display = 'none';
+                }
                 
                 // Display calculation details
                 sizeInKBSpan.textContent = data.sizeInKB.toLocaleString();
