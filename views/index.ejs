@@ -29,13 +29,15 @@
                                 <li><strong>Crust Network</strong> garantisce che i file rimangano disponibili su IPFS (pinnaggio)</li>
                                 <li>Il pagamento per il servizio avviene in <strong>Algorand (ALGO)</strong></li>
                             </ol>
-                            <% if (algoPrice && crustPrice) { %>
-                            <div class="mt-2 text-end">
-                                <span class="badge bg-primary">ALGO: $<%= algoPrice.toFixed(4) %></span>
-                                <span class="badge bg-info">CRUST: $<%= crustPrice.toFixed(4) %></span>
-                                <small class="d-block mt-1">Prezzi attuali dei token</small>
+                            <div id="tokenPrices" class="mt-2 text-end">
+                                <% if (algoPrice && crustPrice) { %>
+                                <span class="badge bg-primary">ALGO: $<span id="algoPrice"><%= algoPrice.toFixed(4) %></span></span>
+                                <span class="badge bg-info">CRUST: $<span id="crustPrice"><%= crustPrice.toFixed(4) %></span></span>
+                                <small class="d-block mt-1">Prezzi aggiornati ogni 10 secondi</small>
+                                <% } else { %>
+                                <span class="badge bg-warning">Prezzi non disponibili</span>
+                                <% } %>
                             </div>
-                            <% } %>
                         </div>
                         
                         <form id="uploadForm" enctype="multipart/form-data">
@@ -239,6 +241,45 @@
             var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
                 return new bootstrap.Tooltip(tooltipTriggerEl);
             });
+            
+            // Aggiornamento automatico dei prezzi dei token
+            const algoPriceElement = document.getElementById('algoPrice');
+            const crustPriceElement = document.getElementById('crustPrice');
+            
+            if (algoPriceElement && crustPriceElement) {
+                // Funzione per aggiornare i prezzi
+                async function updateTokenPrices() {
+                    try {
+                        const response = await fetch('/api/token-prices');
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            algoPriceElement.textContent = data.algoPrice.toFixed(4);
+                            crustPriceElement.textContent = data.crustPrice.toFixed(4);
+                            
+                            // Aggiorna anche i calcoli di equivalenza se sono visibili
+                            const crustEquivalentDiv = document.getElementById('crustEquivalent');
+                            if (crustEquivalentDiv && crustEquivalentDiv.style.display !== 'none') {
+                                // Estrai il valore numerico da priceInAlgos rimuovendo "ALGO" e convertendo in numero
+                                const priceInAlgosText = document.getElementById('priceInAlgos').textContent;
+                                const priceMatch = priceInAlgosText.match(/([0-9,.]+)/);
+                                const priceInAlgos = priceMatch ? parseFloat(priceMatch[1].replace(/,/g, '')) : 0;
+                                
+                                if (priceInAlgos > 0) {
+                                    const priceInUSD = priceInAlgos * data.algoPrice;
+                                    const equivalentCRUST = priceInUSD / data.crustPrice;
+                                    document.getElementById('equivalentCRUST').textContent = equivalentCRUST.toFixed(6);
+                                }
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error fetching token prices:', error);
+                    }
+                }
+                
+                // Aggiorna ogni 10 secondi
+                setInterval(updateTokenPrices, 10000);
+            }
         });
     </script>
 </body>

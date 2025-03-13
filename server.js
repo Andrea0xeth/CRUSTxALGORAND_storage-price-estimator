@@ -52,9 +52,9 @@ let tokenPriceCache = {
  */
 async function getTokenPrices() {
   try {
-    // Se abbiamo prezzi in cache recenti (meno di 5 minuti), usiamo quelli
+    // Se abbiamo prezzi in cache recenti (meno di 10 secondi), usiamo quelli
     const now = Date.now();
-    if (tokenPriceCache.timestamp && (now - tokenPriceCache.timestamp < 5 * 60 * 1000)) {
+    if (tokenPriceCache.timestamp && (now - tokenPriceCache.timestamp < 10 * 1000)) {
       console.log('Using cached token prices');
       return {
         algoPrice: tokenPriceCache.algo,
@@ -302,6 +302,26 @@ app.post('/calculate-price', async (req, res) => {
   } catch (error) {
     console.error('Server error:', error);
     res.status(500).json({ error: 'Server error', message: error.message });
+  }
+});
+
+// Endpoint per ottenere i prezzi aggiornati dei token
+app.get('/api/token-prices', async (req, res) => {
+  try {
+    const { algoPrice, crustPrice } = await getTokenPrices();
+    res.json({
+      success: true,
+      algoPrice,
+      crustPrice,
+      timestamp: Date.now()
+    });
+  } catch (error) {
+    console.error('Error fetching token prices:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Could not fetch token prices',
+      message: error.message
+    });
   }
 });
 
