@@ -1,62 +1,66 @@
-# Algorand Storage Price Estimator
+# Storage Price Estimator
 
-This application allows you to estimate the cost of storing files on the Algorand blockchain using the Crust storage protocol. Simply upload a file, specify if you want permanent or temporary storage, and get an instant price estimate.
+Applicazione per stimare il costo di archiviazione dei file sulla blockchain Algorand usando il protocollo Crust.
+
+## Demo Online
+
+Puoi provare l'applicazione online qui: [https://storage-price-estimator.vercel.app/](https://storage-price-estimator.vercel.app/)
 
 ## Features
 
-- Upload files to estimate storage costs
-- Calculate costs for both temporary and permanent storage
-- Display prices in both microAlgos and Algos
-- User-friendly web interface
+- Upload di file e stima immediata del costo di archiviazione
+- Opzione per archiviazione temporanea o permanente
+- Visualizzazione del costo in microAlgos e Algos
+- Interfaccia utente intuitiva
 
-## Requirements
+## Requisiti
 
-- Node.js (v14 or higher)
-- npm (v6 or higher)
+- Node.js (v14 o superiore)
+- npm (v6 o superiore)
 
-## Installation
+## Installazione
 
-1. Clone this repository
-2. Navigate to the project directory
-3. Install dependencies:
+1. Clona questo repository
+2. Naviga nella directory del progetto
+3. Installa le dipendenze:
 
 ```bash
 npm install
 ```
 
-## Usage
+## Utilizzo
 
-1. Start the application:
+1. Avvia l'applicazione:
 
 ```bash
 npm start
 ```
 
-2. Open your browser and go to http://localhost:3000
-3. Upload a file and choose your storage options
-4. View the estimated storage cost
+2. Apri il browser all'indirizzo [http://localhost:3000](http://localhost:3000)
+3. Carica un file e scegli le opzioni di archiviazione
+4. Visualizza il costo di archiviazione stimato
 
-## How It Works
+## Come Funziona
 
-The application uses the following components:
+L'applicazione utilizza i seguenti componenti:
 
-- **Express.js**: Web server framework
-- **EJS**: Template engine for the frontend
-- **Algorand SDK**: To interact with the Algorand blockchain
-- **AlgoKit Utils**: Utility functions for Algorand development
+- **Express.js**: Framework web server
+- **EJS**: Template engine per il frontend
+- **Algorand SDK**: Per interagire con la blockchain Algorand
+- **AlgoKit Utils**: Funzioni di utilità per lo sviluppo Algorand
 
-The price estimation is calculated using the `getPrice` function from the Crust storage protocol, which simulates the cost without actually uploading the file or making any blockchain transactions.
+Il calcolo del prezzo viene effettuato utilizzando la funzione `getPrice` dal protocollo di archiviazione Crust, che simula il costo senza effettivamente caricare il file o effettuare transazioni blockchain.
 
-## Development
+## Sviluppo
 
-To run the application in development mode with auto-restart:
+Per eseguire l'applicazione in modalità sviluppo con riavvio automatico:
 
 ```bash
 npm run dev
 ```
 
-## Notes
+## Note
 
-- This is a price estimation tool only. It does not actually upload files to the blockchain.
-- The application uses Algorand TestNet for price calculations.
-- Actual prices may vary based on current network conditions and pricing parameters. 
+- Questo è solo uno strumento di stima dei prezzi. Non carica effettivamente i file sulla blockchain.
+- L'applicazione utilizza Algorand TestNet per i calcoli dei prezzi.
+- I prezzi effettivi possono variare in base alle condizioni attuali della rete e ai parametri di prezzo. 
